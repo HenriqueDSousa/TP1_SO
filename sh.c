@@ -146,6 +146,7 @@ runcmd(struct cmd *cmd)
         close(pipe_fd[1]);  
         runcmd(pcmd->left);
       }
+      
       else {
         // Pai
         // Fechar a escrita do pipe no pai
