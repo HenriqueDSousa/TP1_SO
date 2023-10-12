@@ -125,7 +125,41 @@ runcmd(struct cmd *cmd)
       /* MARK START task4
       * TAREFA4: Implemente codigo abaixo para executar
       * comando com pipes. */
-      fprintf(stderr, "pipe nao implementado\n");
+      int pipe_fd[2];
+
+      if (pipe(pipe_fd) < 0) {
+        perror("Erro ao adicionar pipe");
+        exit(-1);
+      }
+
+      //Filho
+      if( fork1() == 0) {
+        
+        close(pipe_fd[0]);
+
+        if (dup2(pipe_fd[1], STDOUT_FILENO) < 0) {
+          perror("Erro ao redirecionar a saída para o pipe");
+          exit(-1);
+        }
+
+        // Fechar o descritor de escrita do pipe no filho
+        close(pipe_fd[1]);  
+        runcmd(pcmd->left);
+      }
+      else {
+        // Pai
+        // Fechar a escrita do pipe no pai
+        close(pipe_fd[1]);  
+
+        if (dup2(pipe_fd[0], STDIN_FILENO) < 0) {
+          perror("Erro ao redirecionar a entrada do pipe");
+          exit(-1);
+        }
+
+        close(pipe_fd[0]);  // Fechar o descritor de leitura do pipe no pai
+        runcmd(pcmd->right);
+      }
+      //fprintf(stderr, "pipe nao implementado\n");
       /* MARK END task4 */
       break;
     }    
