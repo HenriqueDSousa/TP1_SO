@@ -65,42 +65,47 @@ runcmd(struct cmd *cmd)
     exit(0);
   
   switch(cmd->type){
-  default:
-    fprintf(stderr, "tipo de comando desconhecido\n");
-    exit(-1);
+    default:
+      fprintf(stderr, "tipo de comando desconhecido\n");
+      exit(-1);
 
-  case ' ':
-    ecmd = (struct execcmd*)cmd;
-    if(ecmd->argv[0] == 0)
-      exit(0);
-    /* MARK START task2
-     * TAREFA2: Implemente codigo abaixo para executar
-     * comandos simples. */
-    fprintf(stderr, "exec nao implementado\n");
-    /* MARK END task2 */
-    break;
+    case ' ':
+      ecmd = (struct execcmd*)cmd;
+      if(ecmd->argv[0] == 0)
+        exit(0);
+      /* MARK START task2
+      * TAREFA2: Implemente codigo abaixo para executar
+      * comandos simples. */ 
 
-  case '>':
-  case '<':
-    rcmd = (struct redircmd*)cmd;
-    /* MARK START task3
-     * TAREFA3: Implemente codigo abaixo para executar
-     * comando com redirecionamento. */
-    fprintf(stderr, "redir nao implementado\n");
-    /* MARK END task3 */
-    runcmd(rcmd->cmd);
-    break;
+      execvp(ecmd->argv[0], ecmd->argv);
+      perror("Erro ao executar o comando");
+      exit(-1);
+      
+      //fprintf(stderr, "exec nao implementado\n");
+      /* MARK END task2 */
+      break;
 
-  case '|':
-    pcmd = (struct pipecmd*)cmd;
-    /* MARK START task4
-     * TAREFA4: Implemente codigo abaixo para executar
-     * comando com pipes. */
-    fprintf(stderr, "pipe nao implementado\n");
-    /* MARK END task4 */
-    break;
-  }    
-  exit(0);
+    case '>':
+    case '<':
+      rcmd = (struct redircmd*)cmd;
+      /* MARK START task3
+      * TAREFA3: Implemente codigo abaixo para executar
+      * comando com redirecionamento. */
+      fprintf(stderr, "redir nao implementado\n");
+      /* MARK END task3 */
+      runcmd(rcmd->cmd);
+      break;
+
+    case '|':
+      pcmd = (struct pipecmd*)cmd;
+      /* MARK START task4
+      * TAREFA4: Implemente codigo abaixo para executar
+      * comando com pipes. */
+      fprintf(stderr, "pipe nao implementado\n");
+      /* MARK END task4 */
+      break;
+    }    
+    exit(0);
 }
 
 int
