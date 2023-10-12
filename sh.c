@@ -91,8 +91,32 @@ runcmd(struct cmd *cmd)
       /* MARK START task3
       * TAREFA3: Implemente codigo abaixo para executar
       * comando com redirecionamento. */
-      fprintf(stderr, "redir nao implementado\n");
+
+      int filedescriptor;
+      
+      if (rcmd->type == '>'){
+
+        filedescriptor = open(rcmd->file, O_WRONLY|O_CREAT|O_TRUNC);
+      } 
+      else {
+        filedescriptor = open(rcmd->file, O_RDONLY);
+      }
+
+      if (filedescriptor < 0) {
+        perror("Erro ao abrir o arquivo");
+        exit(-1);
+      }
+
+      if (dup2(filedescriptor, rcmd->fd) < 0) {
+        perror("Erro ao redirecionar o descritor de arquivo");
+        exit(-1);
+      }
+      
+      //fprintf(stderr, "redir nao implementado\n");
       /* MARK END task3 */
+
+      close(filedescriptor);
+
       runcmd(rcmd->cmd);
       break;
 
