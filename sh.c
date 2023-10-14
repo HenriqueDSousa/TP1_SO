@@ -56,7 +56,7 @@ struct cmd *parsecmd(char*); // Processar o linha de comando.
 void
 runcmd(struct cmd *cmd)
 {
-  int p[2], r;
+  
   struct execcmd *ecmd;
   struct pipecmd *pcmd;
   struct redircmd *rcmd;
