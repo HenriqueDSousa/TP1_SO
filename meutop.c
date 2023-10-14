@@ -6,20 +6,41 @@
 #include <unistd.h>
 #include <signal.h>
 #include <pthread.h>
+#include <termios.h>
+#include <fcntl.h>
 
 pthread_mutex_t lock;
+
+
+int kbhit() {
+    struct termios oldt, newt;
+    int ch;
+    int fd = fileno(stdin);
+    int flags = fcntl(fd, F_GETFL);
+    fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ECHO | ICANON);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    ch = getchar();
+    fcntl(fd, F_SETFL, flags);
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+
+    if( ch == '\n')
+        return 0;
+
+    else 
+       return ch != EOF;
+}
 
 void eraseFirstAndLastCharacter(char* str) {
     int length = strlen(str);
     if (length >= 2) {
-        // Shift characters to the left to remove the first character
         for (int i = 0; i < length - 1; ++i) {
             str[i] = str[i + 1];
         }
-        // Erase the last character by setting it to null terminator
         str[length - 2] = '\0';
     } else {
-        // Handle cases where the string has 0 or 1 characters
         str[0] = '\0';
     }
 }
@@ -79,8 +100,10 @@ void* display_process() {
         return NULL;
     }
 
-    while(1) {
+   
         pthread_mutex_lock(&lock);
+
+        printf("\033[H\033[J");
         fflush(stdout);
         
         printf("|------------|------------|----------------------|------------|\n");
@@ -92,64 +115,78 @@ void* display_process() {
         int i=0;
 
         while ((entry = readdir(dir)) != NULL && i<40) {
-            // Check if the entry is a directory and represents a process ID
             const char *pidc = entry->d_name;
-            if (entry->d_type == DT_DIR && atoi(pidc) != 0) {
+            if (entry->d_type == 4 && atoi(pidc) != 0) {
                 read_proc_stat(pidc);
                 i++;
             }
 
         }
         printf("|------------|------------|----------------------|------------|\n");
+        printf("Pressione uma tecla para mandar um sinal para um processo\n");
         
         rewinddir(dir);
         
         fflush(stdout);
-        pthread_mutex_unlock(&lock);
+        
         sleep(1);
-    }
+        pthread_mutex_unlock(&lock);
+    
     closedir(dir);
 }
 
 
 void* get_signal() {
-    while (1) {
-        sleep(2);
-        pthread_mutex_lock(&lock);
-        int pid, signal;
-        scanf("%d %d", &pid, &signal);
 
-        int result = kill(pid, signal);
-        if (result == 0) {
-            printf("Signal %d sent to process with PID %d.\n", signal, pid);
-        } else {
-            perror("Error sending signal");
-        }
-        pthread_mutex_unlock(&lock);
+  
+        if(kbhit()) {
+            
+            printf("\n");
+            pthread_mutex_lock(&lock);
+            int pid, signal;
+            scanf("%d %d", &pid, &signal);
+
+            int result = kill(pid, signal);
+            printf("result kill = %d", result);
+            if (result == 0) {
+                printf("Signal %d sent to process with PID %d.\n", signal, pid);
+            } else {
+                perror("Error sending signal");
+            }
+            
+            sleep(1);
+            pthread_mutex_unlock(&lock);
+
+            
     }
 }
 
 int main() {
-    pthread_t threadDisplay;
-    pthread_t threadInput; 
-
-    if (pthread_mutex_init(&lock, NULL) != 0) { 
-        printf("\n mutex init has failed\n"); 
-        return 1; 
-    } 
     
-    if (pthread_create(&threadDisplay, NULL, display_process, NULL)) {
-        perror("Thread creation failed");
-        exit(EXIT_FAILURE);
-    }
+    while(1) { 
+        pthread_t threadDisplay;
+        pthread_t threadInput; 
 
-    if (pthread_create(&threadInput, NULL, get_signal, NULL)) {
-        perror("Thread creation failed");
-        exit(EXIT_FAILURE);
-    }
+        if (pthread_mutex_init(&lock, NULL) != 0) { 
+            printf("\n mutex init has failed\n"); 
+            exit(EXIT_FAILURE);
+        } 
 
-    pthread_join(threadDisplay, NULL);
-    pthread_join(threadInput, NULL);
-    
+        if (pthread_create(&threadDisplay, NULL, display_process, NULL)) {
+            perror("Thread creation failed");
+            exit(EXIT_FAILURE);
+        }
+
+        sleep(1);
+        if (pthread_create(&threadInput, NULL, get_signal, NULL)) {
+            perror("Thread creation failed");
+            exit(EXIT_FAILURE);
+        }
+
+        pthread_join(threadDisplay, NULL);
+        pthread_join(threadInput, NULL);
+   } 
+
+    pthread_mutex_destroy(&lock);
     return 0;
 }
