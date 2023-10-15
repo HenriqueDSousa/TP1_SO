@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <dirent.h>
+#include <pwd.h>
+#include <unistd.h>
 #include <signal.h>
 #include <pthread.h>
 #include <termios.h>
-#include <pwd.h>
 #include <fcntl.h>
 
 pthread_mutex_t lock;
@@ -53,7 +53,12 @@ void print_process_info(const char *pid, char *user, char *procname, char *state
         username = "root";
     } else {
         struct passwd *pw = getpwuid(atoiUser);
-        username = pw->pw_name;
+        if (pw != NULL) {
+            username = pw->pw_name;
+        } else {
+            // Handle the case where getpwuid returns NULL
+            username = "unknown";
+        }
     }
     printf("| %-10s | %-10s | %-20s | %-10s |\n", pid, username, procname, state);
 }
@@ -123,7 +128,7 @@ void* display_process() {
 
         }
         printf("|------------|------------|----------------------|------------|\n");
-        printf("Pressione uma tecla para mandar um sinal para um processo\n");
+        printf("Pressione uma tecla (exceto Enter) para mandar um sinal para um processo\n");
         
         rewinddir(dir);
         
@@ -138,37 +143,39 @@ void* display_process() {
 
 void* get_signal() {
 
-    if(kbhit()) {
-        
-        pthread_mutex_lock(&lock);
-        int pid, signal;
-        scanf("%d %d", &pid, &signal);
+  
+        if(kbhit()) {
+            
+            printf("\n");
+            pthread_mutex_lock(&lock);
+            int pid, signal;
+            scanf("%d %d", &pid, &signal);
 
-        int result = kill(pid, signal);
+            int result = kill(pid, signal);
+            printf("result kill = %d", result);
+            if (result == 0) {
+                printf("Signal %d sent to process with PID %d.\n", signal, pid);
+            } else {
+                perror("Error sending signal");
+            }
+            
+            sleep(1);
+            pthread_mutex_unlock(&lock);
 
-        if (result == 0) {
-            printf("Signal %d sent to process with PID %d.\n", signal, pid);
-        } else {
-            perror("Error sending signal");
-        }
-        
-        sleep(1);
-        pthread_mutex_unlock(&lock);
-
+            
     }
 }
 
 int main() {
     
-    if (pthread_mutex_init(&lock, NULL) != 0) { 
-        printf("\n mutex init has failed\n"); 
-        exit(EXIT_FAILURE);
-    } 
-
     while(1) { 
         pthread_t threadDisplay;
         pthread_t threadInput; 
 
+        if (pthread_mutex_init(&lock, NULL) != 0) { 
+            printf("\n mutex init has failed\n"); 
+            exit(EXIT_FAILURE);
+        } 
 
         if (pthread_create(&threadDisplay, NULL, display_process, NULL)) {
             perror("Thread creation failed");

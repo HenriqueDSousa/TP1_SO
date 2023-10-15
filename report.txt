@@ -14,7 +14,7 @@ grupo.  Substitua XX pela contribuição de cada membro do grupo no
 desenvolvimento do trabalho.
 
 Gabriel Franco Jallais <gfjallais@ufmg.br> 50%
-Nome <email@domain.br> 50%
+Henrique Daniel de Sousa <hds2021@ufmg.br> 50%
 
 3. Referências bibliográficas
 
@@ -30,7 +30,43 @@ em sua solução.
 
 - sh.c
 
+Execução de Comandos (exec)
 
+Estruturas de Dados:
+
+    struct execcmd: Armazena informações sobre comandos simples, principalmente seus argumentos (argv).
+
+Algoritmo:
+
+    A função runcmd verifica o tipo de comando (cmd->type) e, em caso de um comando simples (' '), converte a estrutura cmd para struct execcmd.
+    A execução de comandos simples é realizada pela chamada do sistema execvp, que substitui a imagem do processo pelo programa especificado no primeiro argumento (ecmd->argv[0]).
+
+Redirecionamento (redirecionamento)
+
+Estruturas de Dados:
+
+    struct redircmd: Armazena informações sobre comandos de redirecionamento, incluindo o tipo de redirecionamento (type), o comando a ser executado (cmd), o nome do arquivo (file), o modo de abertura do arquivo (mode), e o número do descritor de arquivo (fd).
+
+Algoritmo:
+    A função runcmd trata comandos de redirecionamento ao detectar que o tipo de comando é '<' ou '>'.
+    Abre o arquivo especificado (file) com base no tipo de redirecionamento e modo de abertura (mode).
+    Usa a chamada de sistema dup2 para redirecionar o descritor de arquivo (fd) para o arquivo recém-aberto.
+    Chama recursivamente runcmd para executar o comando dentro do contexto do redirecionamento.
+
+
+Pipes (pipe)
+
+Estruturas de Dados:
+    struct pipecmd: Armazena informações sobre comandos com pipes, incluindo o tipo de comando (type) e ponteiros para os comandos à esquerda (left) e à direita (right) do pipe.
+
+Algoritmo:
+
+    A função runcmd trata comandos com pipes ao detectar que o tipo de comando é '|'.
+    Usa a chamada de sistema pipe para criar um pipe.
+    Realiza um fork para criar processos filho e pai.
+    No processo filho, fecha o descritor de leitura (pipe_fd[0] ou STDIN_FILENO) e redireciona a saída padrão para o descritor de escrita do pipe (pipe_fd[1]).
+    No processo pai, fecha o descritor de escrita (pipe_fd[1] ou STDOUT_FILENO) e redireciona a entrada padrão para o descritor de leitura do pipe (pipe_fd[0]).
+    Chama recursivamente runcmd para os lados esquerdo e direito do pipe.
 
 - meutop.c
 
