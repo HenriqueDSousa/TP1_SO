@@ -14,6 +14,7 @@ grupo.  Substitua XX pela contribuição de cada membro do grupo no
 desenvolvimento do trabalho.
 
 Gabriel Franco Jallais <gfjallais@ufmg.br> 50%
+
 Henrique Daniel de Sousa <hds2021@ufmg.br> 50%
 
 3. Referências bibliográficas
