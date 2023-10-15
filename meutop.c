@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <dirent.h>
-#include <pwd.h>
 #include <unistd.h>
+#include <dirent.h>
 #include <signal.h>
 #include <pthread.h>
 #include <termios.h>
+#include <pwd.h>
 #include <fcntl.h>
 
 pthread_mutex_t lock;
@@ -114,7 +114,7 @@ void* display_process() {
 
         int i=0;
 
-        while ((entry = readdir(dir)) != NULL && i<40) {
+        while ((entry = readdir(dir)) != NULL && i<20) {
             const char *pidc = entry->d_name;
             if (entry->d_type == 4 && atoi(pidc) != 0) {
                 read_proc_stat(pidc);
@@ -138,39 +138,37 @@ void* display_process() {
 
 void* get_signal() {
 
-  
-        if(kbhit()) {
-            
-            printf("\n");
-            pthread_mutex_lock(&lock);
-            int pid, signal;
-            scanf("%d %d", &pid, &signal);
+    if(kbhit()) {
+        
+        pthread_mutex_lock(&lock);
+        int pid, signal;
+        scanf("%d %d", &pid, &signal);
 
-            int result = kill(pid, signal);
-            printf("result kill = %d", result);
-            if (result == 0) {
-                printf("Signal %d sent to process with PID %d.\n", signal, pid);
-            } else {
-                perror("Error sending signal");
-            }
-            
-            sleep(1);
-            pthread_mutex_unlock(&lock);
+        int result = kill(pid, signal);
 
-            
+        if (result == 0) {
+            printf("Signal %d sent to process with PID %d.\n", signal, pid);
+        } else {
+            perror("Error sending signal");
+        }
+        
+        sleep(1);
+        pthread_mutex_unlock(&lock);
+
     }
 }
 
 int main() {
     
+    if (pthread_mutex_init(&lock, NULL) != 0) { 
+        printf("\n mutex init has failed\n"); 
+        exit(EXIT_FAILURE);
+    } 
+
     while(1) { 
         pthread_t threadDisplay;
         pthread_t threadInput; 
 
-        if (pthread_mutex_init(&lock, NULL) != 0) { 
-            printf("\n mutex init has failed\n"); 
-            exit(EXIT_FAILURE);
-        } 
 
         if (pthread_create(&threadDisplay, NULL, display_process, NULL)) {
             perror("Thread creation failed");

@@ -13,15 +13,59 @@ Preencha as linhas abaixo com o nome e o e-mail dos integrantes do
 grupo.  Substitua XX pela contribuição de cada membro do grupo no
 desenvolvimento do trabalho.
 
-Nome <email@domain.br> XX%
-Nome <email@domain.br> XX%
-Nome <email@domain.br> XX%
+Gabriel Franco Jallais <gfjallais@ufmg.br> 50%
+Nome <email@domain.br> 50%
 
 3. Referências bibliográficas
 
-Adicione aqui as referências bibliográficas.
+SILBERSCHATZ, Abraham. Fundamentos de Sistemas Operacionais. 8. ed. Rio de 
+Janeiro: LTC, 2010.
+
+Documentação das bibliotecas utilizadas.
 
 4. Estruturas de dados
 
 Descreva e justifique as estruturas de dados e algoritmos utilizados
 em sua solução.
+
+- sh.c
+
+
+
+- meutop.c
+
+Estruturas de Dados:
+
+Mutex (pthread_mutex_t lock): Um mutex é usado para garantir a exclusão 
+mútua entre as threads. Isso é essencial, pois a operação de atualização 
+da tabela interfere na obtenção da entrada do usuário.
+Thread (pthread_t): Para exercitar os conceitos aprendidos em sala e realizar
+operações de escrita e obtenção de entrada concorrentemente.
+
+Além disso utilizamos estruturas de dados auxiliares de outras bibliotecas
+para a leitura do diretório /proc e seus subdiretórios, e para identificar se o
+usuário está tentando fornecer uma entrada.
+
+Algoritmos:
+
+Listagem de Processos: O programa itera sobre os diretórios em "/proc" para 
+encontrar processos em execução. Para cada processo encontrado, ele lê informações 
+do arquivo /proc/<pid>/stat para obter o nome do processo e seu estado. Ele também 
+lê o arquivo /proc/<pid>/status para obter o UID do usuário associado ao processo. 
+O processo é então impresso na tela usando printf().
+
+Envio de Sinais: A função get_signal() aguarda a entrada do usuário (pid do processo e número do sinal)
+e envia o sinal usando a função kill(). Aqui, o algoritmo principal é a chamada do sistema kill(), 
+que é usada para enviar sinais para processos.
+
+O programa implementado é um exemplo prático de concorrência e manipulação de arquivos em sistemas Linux. 
+Ele demonstra o uso de threads para realizar tarefas simultâneas - uma para exibir informações do processo 
+na tela e outra para capturar os sinais do usuário. A utilização de mutex garante que a saída seja bem 
+coordenada entre essas threads, evitando condições de corrida.
+
+Além disso, o programa explora a estrutura do sistema de arquivos /proc do Linux para obter 
+informações detalhadas sobre os processos em execução. Isso ilustra como as informações do
+sistema podem ser acessadas e utilizadas em programas C.
+
+A implementação do programa também mostra um bom entendimento do uso de chamadas de sistema,
+manipulação de arquivos e manipulação de strings em C.
